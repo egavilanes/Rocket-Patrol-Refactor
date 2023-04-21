@@ -38,7 +38,6 @@ class Play extends Phaser.Scene {
         keyLEFT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
         keyRIGHT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
 
-        // animation config
         this.anims.create({
             key: 'explode',
             frames: this.anims.generateFrameNumbers('explosion', { 
@@ -52,7 +51,6 @@ class Play extends Phaser.Scene {
         // initialize score
         this.p1Score = 0;
 
-        // display score
         let scoreConfig = {
             fontFamily: 'Courier',
             fontSize: '28px',
@@ -89,11 +87,11 @@ class Play extends Phaser.Scene {
             this.scene.start("menuScene");
         }
 
-        this.starfield.tilePositionX -= 4;  // update tile sprite
+        this.starfield.tilePositionX -= 4;  
 
         if(!this.gameOver) {
-            this.p1Rocket.update();             // update p1
-             this.ship01.update();               // update spaceship (x3)
+            this.p1Rocket.update();           
+             this.ship01.update();              
             this.ship02.update();
             this.ship03.update();
         }
