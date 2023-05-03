@@ -8,15 +8,16 @@ class Menu extends Phaser.Scene {
       this.load.audio('sfx_select', './assets/blip_select12.wav');
       this.load.audio('sfx_explosion', './assets/explosion38.wav');
       this.load.audio('sfx_rocket', './assets/rocket_shot.wav');
+      this.load.audio('background_music','./assets/space-120280.mp3');
   }
 
   create() {
 
       let menuConfig = {
-          fontFamily: 'Courier',
+          fontFamily: 'Times',
           fontSize: '28px',
-          backgroundColor: '#F3B141',
-          color: '#843605',
+          backgroundColor: 'red',
+          color: 'white',
           align: 'right',
           padding: {
               top: 5,
@@ -26,7 +27,7 @@ class Menu extends Phaser.Scene {
       }
       
 
-      this.add.text(game.config.width/2, game.config.height/2 - borderUISize - borderPadding, 'ROCKET PATROL', menuConfig).setOrigin(0.5);
+      this.add.text(game.config.width/2, game.config.height/4 - borderUISize - borderPadding, 'ROCKET PATROL', menuConfig).setOrigin(0.5);
       this.add.text(game.config.width/2, game.config.height/2, 'Use ←→ arrows to move & (F) to fire', menuConfig).setOrigin(0.5);
       menuConfig.backgroundColor = '#00FF00';
       menuConfig.color = '#000';

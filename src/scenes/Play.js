@@ -15,8 +15,10 @@ class Play extends Phaser.Scene {
     create() {
 
         this.starfield = this.add.tileSprite(0, 0, 640, 480, 'starfield').setOrigin(0, 0);
-
-
+        this.starfield.tilePositionX = 0;
+        this.starfield.tilePositionY = 0;
+        this.starfield.scrollFactorX = 0.5;
+        this.starfield.scrollFactorY = 0.5;
         this.add.rectangle(0, borderUISize + borderPadding, game.config.width, borderUISize * 2, 0x00FF00).setOrigin(0, 0);
 
         this.add.rectangle(0, 0, game.config.width, borderUISize, 0xFFFFFF).setOrigin(0 ,0);
@@ -38,6 +40,17 @@ class Play extends Phaser.Scene {
         keyLEFT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
         keyRIGHT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
 
+        this.pointer = this.input.activePointer;
+        this.p1Rocket.x = Phaser.Math.Clamp(this.pointer.x, 0, game.config.width);
+
+        this.input.on('pointerdown', () => {
+            if (!this.gameOver) {
+                this.p1Rocket.fire();
+            }
+        });
+        
+
+
         this.anims.create({
             key: 'explode',
             frames: this.anims.generateFrameNumbers('explosion', { 
@@ -47,6 +60,8 @@ class Play extends Phaser.Scene {
             }),
             frameRate: 30
         });
+
+        this.sound.play('background_music');
 
         // initialize score
         this.p1Score = 0;
@@ -75,7 +90,92 @@ class Play extends Phaser.Scene {
             this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← to Menu', scoreConfig).setOrigin(0.5);
             this.gameOver = true;
         }, null, this);
+
+
+
+    this.highScore = 0;
+    let highScoreConfig = {
+        fontFamily: 'Courier',
+        fontSize: '12px',
+        backgroundColor: '#F3B141',
+        color: '#843605',
+        align: 'right',
+        padding: {
+            top: 5,
+            bottom: 5,
+            right: 5
+        },
+        fixedWidth: 110
     }
+    this.highScore = parseInt(localStorage.getItem("highscore")) || 0;
+    this.highScoreText = this.add.text(game.config.width - borderUISize - borderPadding - 100, borderUISize + borderPadding*2, 'High Score: ' + this.highScore, highScoreConfig);
+
+    this.time.addEvent({
+        delay: 30000,
+        callback: () => {
+            this.ship01.moveSpeed += 1;
+            this.ship02.moveSpeed += 1;
+            this.ship03.moveSpeed += 1;
+            this.p1Rocket.moveSpeed += 1;
+        },
+        loop: false
+    });
+    this.fireText = this.add.text(game.config.width / 2, game.config.height /6, 'FIRE', {
+        fontFamily: 'Courier',
+        fontSize: '32px',
+        backgroundColor: '#F3B141',
+        color: '#843605',
+        align: 'center',
+        padding: {
+            top: 5,
+            bottom: 5,
+        },
+    });
+    this.fireText.setOrigin(0.5);
+    this.fireText.setVisible(false);
+
+  let clockConfig = {
+    fontFamily: 'Courier',
+    fontSize: '12px',
+    backgroundColor: '#F3B141',
+    color: '#843605',
+    align: 'right',
+    padding: {
+        top: 5,
+        bottom: 5,
+        right: 5
+    },
+    fixedWidth: 110
+}
+this.clockText = this.add.text(game.config.width - borderUISize - borderPadding - 100, borderUISize + borderPadding *5, '', clockConfig);
+
+this.particles = this.add.particles('explosion');
+this.particleConfig = {
+    x: 0,
+    y: 0,
+    speed: { min: -200, max: 200 },
+    angle: { min: 0, max: 360 },
+    gravityY: 500,
+    lifespan: 1000,
+    scale: { start: 0.5, end: 0 },
+    quantity: 20,
+    blendMode: 'ADD',
+    frequency: 0,
+    emitZone: { type: 'edge', source: new Phaser.Geom.Rectangle(0, 0, 64, 32), quantity: 20 }
+  };
+  
+
+  this.input.on('pointermove', function (pointer) {
+    this.p1Rocket.x = pointer.x;
+  }, this);
+
+  this.input.on('pointerdown', function (pointer) {
+    if (!this.gameOver) {
+      this.p1Rocket.fire(this);
+    }
+  }, this);
+  
+}
 
     update() {
         // check key input for restart / menu
@@ -86,6 +186,7 @@ class Play extends Phaser.Scene {
         if(this.gameOver && Phaser.Input.Keyboard.JustDown(keyLEFT)) {
             this.scene.start("menuScene");
         }
+
 
         this.starfield.tilePositionX -= 4;  
 
@@ -99,17 +200,47 @@ class Play extends Phaser.Scene {
         // check collisions
         if(this.checkCollision(this.p1Rocket, this.ship03)) {
             this.p1Rocket.reset();
+            this.clock.delay += 3000;
             this.shipExplode(this.ship03);
+            this.particles.emitParticleAt(this.ship03.x, this.ship03.y, this.particleConfig);
         }
         if (this.checkCollision(this.p1Rocket, this.ship02)) {
             this.p1Rocket.reset();
+            this.clock.delay += 3000;
             this.shipExplode(this.ship02);
+            this.particles.emitParticleAt(this.ship02.x, this.ship02.y, this.particleConfig);
         }
         if (this.checkCollision(this.p1Rocket, this.ship01)) {
             this.p1Rocket.reset();
+            this.clock.delay += 3000;
             this.shipExplode(this.ship01);
+            this.particles.emitParticleAt(this.ship01.x, this.ship01.y, this.particleConfig);
         }
+        if (Phaser.Input.Keyboard.JustDown(keyF) && !this.p1Rocket.isFiring) {
+            this.p1Rocket.isFiring = true;
+            this.p1Rocket.fire();
+            this.fireText.setVisible(true);
+        }
+        if (this.p1Rocket.isFiring) {
+            this.fireText.setVisible(true);
+        } else {
+            this.fireText.setVisible(false);
+        }
+        if (!this.gameOver) {
+            // Update clock text
+            const secondsLeft = Math.ceil(this.clock.getRemainingSeconds());
+            this.clockText.setText(`Time: ${secondsLeft}`);
+        }
+        if(this.checkCollision(this.p1Rocket, this.ship03)) {
+            this.p1Rocket.reset();
+            this.shipExplode(this.ship03);
+          
+            // create particle explosion
+            this.particles.emitParticleAt(this.ship03.x, this.ship03.y, this.particleConfig);
+          }
+          
     }
+
 
     checkCollision(rocket, ship) {
         if (rocket.x < ship.x + ship.width && 
@@ -121,6 +252,8 @@ class Play extends Phaser.Scene {
             return false;
         }
     }
+
+    
 
     shipExplode(ship) {
         ship.alpha = 0;                         
@@ -134,8 +267,21 @@ class Play extends Phaser.Scene {
         });
         // score add and repaint
         this.p1Score += ship.points;
-        this.scoreLeft.text = this.p1Score; 
-        
+        this.scoreLeft.text = this.p1Score;
+        if (this.p1Score > this.highScore) {
+            this.highScore = this.p1Score;
+            this.highScoreText.text = 'High Score: ' + this.highScore;
+            localStorage.setItem("highscore", this.highScore); 
+        }
         this.sound.play('sfx_explosion');
       }
+
+ 
 }
+
+
+// mods considering: tracking high score (5), implement 'FIRE' UI text (5), display time remaining on screen (5), 
+//create new scrolling sprite for the background (5), add different copyright-free music to Play scene (5), 
+//create 4 new explosion sounds effects (10), display the time remaining on the screen (10), 
+//create new title screen (10), Implement a new timing/scoring mechanism that adds time to the clock for successful hits (15),
+// 
