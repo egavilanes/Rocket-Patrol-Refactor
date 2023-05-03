@@ -1,9 +1,11 @@
+// EMILY GAVILANES
+// Rocket Patrol Revived
 // Mods implemented:
 // track high score (5)
 // implement FIRE UI (5)
 // allow player to move rocket after it's been fired (5)
-//add copyright free music (5)
-//implement speed increase (5)
+// add copyright free music (5)
+// implement speed increase (5)
 // display time remaining (10)
 // create new title screen (10)
 // implement parallax scrolling (10)
