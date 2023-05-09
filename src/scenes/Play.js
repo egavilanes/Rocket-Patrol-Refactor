@@ -8,7 +8,7 @@ class Play extends Phaser.Scene {
         this.load.image('rocket', './assets/rocket.png');
         this.load.image('spaceship', './assets/spaceship.png');
         this.load.image('starfield', './assets/starfield.png');
- 
+        this.load.image('particle', './assets/particle.png');
         this.load.spritesheet('explosion', './assets/explosion.png', {frameWidth: 64, frameHeight: 32, startFrame: 0, endFrame: 9});
     }
 
@@ -60,7 +60,7 @@ class Play extends Phaser.Scene {
             }),
             frameRate: 30
         });
-
+// new background music
         this.sound.play('background_music');
 
         // initialize score
@@ -92,7 +92,7 @@ class Play extends Phaser.Scene {
         }, null, this);
 
 
-
+// display and hold highscore
     this.highScore = 0;
     let highScoreConfig = {
         fontFamily: 'Courier',
@@ -110,6 +110,7 @@ class Play extends Phaser.Scene {
     this.highScore = parseInt(localStorage.getItem("highscore")) || 0;
     this.highScoreText = this.add.text(game.config.width - borderUISize - borderPadding - 100, borderUISize + borderPadding*2, 'High Score: ' + this.highScore, highScoreConfig);
 
+    // make the rockets go faster
     this.time.addEvent({
         delay: 30000,
         callback: () => {
@@ -149,22 +150,21 @@ class Play extends Phaser.Scene {
 }
 this.clockText = this.add.text(game.config.width - borderUISize - borderPadding - 100, borderUISize + borderPadding *5, '', clockConfig);
 
-this.particles = this.add.particles('explosion');
-this.particleConfig = {
-    x: 0,
-    y: 0,
-    speed: { min: -200, max: 200 },
-    angle: { min: 0, max: 360 },
-    gravityY: 500,
-    lifespan: 1000,
-    scale: { start: 0.5, end: 0 },
-    quantity: 20,
-    blendMode: 'ADD',
-    frequency: 0,
-    emitZone: { type: 'edge', source: new Phaser.Geom.Rectangle(0, 0, 64, 32), quantity: 20 }
-  };
-  
+// for particle explosion
+this.particles = this.add.particles('particle');
+this.emitter = this.particles.createEmitter({
+    speed: 200,
+    lifespan: 500,
+    blendMode: 'Add',
+    scale: {
+        start: 1,
+        end: 0,
+    },
+    on: false,
+});
 
+ 
+// for mouse control
   this.input.on('pointermove', function (pointer) {
     this.p1Rocket.x = pointer.x;
   }, this);
@@ -202,13 +202,13 @@ this.particleConfig = {
             this.p1Rocket.reset();
             this.clock.delay += 3000;
             this.shipExplode(this.ship03);
-            this.particles.emitParticleAt(this.ship03.x, this.ship03.y, this.particleConfig);
+            this.particles.emitParticleAt(this.ship03.x, this.ship03.y, 200);
         }
         if (this.checkCollision(this.p1Rocket, this.ship02)) {
             this.p1Rocket.reset();
             this.clock.delay += 3000;
             this.shipExplode(this.ship02);
-            this.particles.emitParticleAt(this.ship02.x, this.ship02.y, this.particleConfig);
+            this.particles.emitParticleAt(this.ship02.x, this.ship02.y, 200);
         }
         if (this.checkCollision(this.p1Rocket, this.ship01)) {
             this.p1Rocket.reset();
@@ -226,17 +226,22 @@ this.particleConfig = {
         } else {
             this.fireText.setVisible(false);
         }
+
+        // update clock text
         if (!this.gameOver) {
-            // Update clock text
-            const secondsLeft = Math.ceil(this.clock.getRemainingSeconds());
-            this.clockText.setText(`Time: ${secondsLeft}`);
+            // Calculate remaining seconds
+            const elapsedMilliseconds = this.clock.delay - this.clock.getElapsed();
+            const remainingSeconds = Math.max(Math.ceil(elapsedMilliseconds / 1000), 0);
+        
+            this.clockText.setText(`Time: ${remainingSeconds}`);
         }
+
         if(this.checkCollision(this.p1Rocket, this.ship03)) {
             this.p1Rocket.reset();
             this.shipExplode(this.ship03);
           
             // create particle explosion
-            this.particles.emitParticleAt(this.ship03.x, this.ship03.y, this.particleConfig);
+            this.particles.emitParticleAt(this.ship03.x, this.ship03.y, 200);
           }
           
     }
